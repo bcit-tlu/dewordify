@@ -76,8 +76,8 @@ export function writeOutputFiles(cwd: string, files: { filename: string; data: s
 	const root = path.resolve(cwd);
 	for (const file of files) {
 		const filePath = path.resolve(root, file.filename);
-		// Generated filenames derive from document content; refuse any that
-		// would escape the working directory.
+		// Generated filenames derive from document content.
+		// Refuse any that would escape the working directory.
 		if (!filePath.startsWith(root + path.sep)) {
 			throw new Error(`Refusing to write outside output directory: ${file.filename}`);
 		}

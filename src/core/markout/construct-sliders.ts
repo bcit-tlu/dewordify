@@ -11,10 +11,9 @@ import { wrapAllHtml } from "./helpers.js";
  */
 export function constructSliders($: CheerioAPI) {
 	$(".slider").each(function () {
-		// Track slide membership by node reference rather than index. Inserting
-		// placeholder <img> elements mid-pass shifts live child indices out of
-		// sync with any pre-captured index collection, so recorded start/end
-		// bounds would point at the wrong nodes.
+		// Track slide membership by node reference rather than index.
+		// Inserted placeholder <img> elements shift live child indices.
+		// Pre-captured index bounds would then point at the wrong nodes.
 		const slides: AnyNode[][] = [];
 		let current: AnyNode[] | null = null;
 

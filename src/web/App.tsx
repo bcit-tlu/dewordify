@@ -170,8 +170,7 @@ export function App() {
 	const [fullscreen, setFullscreen] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const previewCardRef = useRef<HTMLElement>(null);
-	// Mirror of `file` state so an async conversion can detect that the user
-	// selected a different file while it was in flight.
+	// Mirror of `file` state so an async conversion can detect a mid-flight file change.
 	const fileRef = useRef<File | null>(null);
 	useEffect(() => {
 		fileRef.current = file;
@@ -569,9 +568,8 @@ export function App() {
 										title="Page preview"
 										className="preview"
 										// Converted documents can contain active content from uploads.
-										// Blob URLs would otherwise inherit this app's origin; the
-										// sandbox gives the preview an opaque origin while still
-										// allowing the preview's own scripts (lat.js) to run.
+										// Blob URLs would otherwise inherit this app's origin.
+										// The sandbox gives the preview an opaque origin while still allowing lat.js scripts to run.
 										sandbox="allow-scripts"
 										style={{ height: (autoHeight || fullscreen) ? "calc(100vh - 120px)" : previewHeight + "vh" }}
 										src={previewUrl ?? undefined}

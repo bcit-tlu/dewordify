@@ -3,8 +3,7 @@ import { convert, defaultStyleMap, defaultTemplate } from "../core/index.js";
 import type { ConvertResult } from "../core/index.js";
 import { nodeConverter } from "./converter.js";
 
-// Uploads are buffered in memory, so cap the body size to avoid exhausting
-// server memory on large or concurrent uploads.
+// Uploads are buffered in memory, so cap the body size.
 const MAX_UPLOAD_BYTES =
 	parseInt(process.env.DEWORDIFY_MAX_UPLOAD_MB ?? "", 10) > 0
 		? parseInt(process.env.DEWORDIFY_MAX_UPLOAD_MB ?? "", 10) * 1024 * 1024
@@ -12,7 +11,7 @@ const MAX_UPLOAD_BYTES =
 
 // Bind to localhost by default; set DEWORDIFY_HOST to expose other interfaces.
 const HOST = process.env.DEWORDIFY_HOST ?? "127.0.0.1";
-// Optional bearer token. When set, /convert requires it; /health stays open.
+// Optional bearer token: when set, /convert requires it while /health stays open.
 const API_KEY = process.env.DEWORDIFY_API_KEY;
 
 function sendJson(res: http.ServerResponse, status: number, body: unknown) {
@@ -46,8 +45,7 @@ export function serve(port: number) {
 
 			const chunks: Buffer[] = [];
 			let received = 0;
-			// True once the response has been claimed by an early failure
-			// path (oversized/aborted/errored upload).
+			// True once the response has been claimed by an early failure path (oversized/aborted/errored upload).
 			let settled = false;
 
 			req.on("data", (chunk: Buffer) => {

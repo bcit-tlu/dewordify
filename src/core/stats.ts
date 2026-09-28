@@ -45,8 +45,8 @@ function complexStructures(pages: CheerioAPI[]): StructureStat[] {
 	const structures: StructureStat[] = [
 		{
 			name: "Pages",
-			// Count page fragments, not H1s: headingless documents still
-			// generate a single page.
+			// Count page fragments, not H1s.
+			// Headingless documents still generate a single page.
 			count: pages.length,
 			hint: `(~${Math.floor(totalWords / Math.max(pages.length, 1))} words/page)`
 		},
@@ -96,11 +96,9 @@ function getCount($: CheerioAPI, ctx: ConvertContext, marker: string) {
 		selector = tagName;
 	}
 
-	// constructInteractions replaces the `pre.interaction` wrapper with the
-	// parsed embed (typically an <iframe>), dropping the wrapper so the generic
-	// `.interaction` selector would always match zero. Embeds from videos and
-	// linked audio also produce iframes, so interactions are identified by the
-	// `interaction` class constructInteractions adds to embed iframes.
+	// constructInteractions replaces the `pre.interaction` wrapper with the parsed embed.
+	// The generic `.interaction` selector would therefore always match zero.
+	// Videos and linked audio also produce iframes, so interactions are identified by the `interaction` class on embed iframes.
 	if (marker === "interaction") {
 		return $("iframe.interaction").length;
 	}

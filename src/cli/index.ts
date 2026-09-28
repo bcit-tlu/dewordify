@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { convert, defaultStyleMap, defaultTemplate } from "../core/index.js";
 import type { MarkoutMap, Stats, Message } from "../core/index.js";
 import { nodeConverter } from "./converter.js";
@@ -15,6 +16,10 @@ const commands = ["dewordify", "munch", "estimate", "strip", "serve"];
  * Dispatches to the appropriate sub-command based on the command name.
  */
 export async function run(command?: string, fileArg?: string) {
+	if (command === "--version" || command === "-v" || fileArg === "--version" || fileArg === "-v") {
+		printVersion();
+		return;
+	}
 	const cwd = process.cwd();
 	const cmd = command && commands.includes(command) ? command : "dewordify";
 
@@ -33,6 +38,38 @@ export async function run(command?: string, fileArg?: string) {
 			return;
 		default:
 			await dewordify(cwd, fileArg, true);
+	}
+}
+
+/** Print the package version and when dist/ was built, warning if stale. */
+function printVersion() {
+	const pkgPath = new URL("../../package.json", import.meta.url);
+	const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as { version: string };
+	const builtAt = fs.statSync(fileURLToPath(import.meta.url)).mtime;
+	console.log(`dewordify ${pkg.version} (cli built ${builtAt.toISOString()})`);
+
+	// Warn when src/ is available and contains .ts files newer than the compiled output.
+	// Only meaningful in a repo checkout.
+	// Installed copies ship src/ without tsconfig, so build:cli can't rebuild there.
+	// Tarball extraction order can also leave src files with newer mtimes than dist on a fresh install.
+	const tsconfigPath = new URL("../../tsconfig.cli.json", import.meta.url);
+	const srcDir = fileURLToPath(new URL("../../src", import.meta.url));
+	if (!fs.existsSync(tsconfigPath) || !fs.existsSync(srcDir)) return;
+	let newestSrc = 0;
+	const dirs = [srcDir];
+	while (dirs.length) {
+		const dir = dirs.pop()!;
+		for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+			const full = path.join(dir, entry.name);
+			if (entry.isDirectory()) {
+				dirs.push(full);
+			} else if (entry.name.endsWith(".ts")) {
+				newestSrc = Math.max(newestSrc, fs.statSync(full).mtimeMs);
+			}
+		}
+	}
+	if (newestSrc > builtAt.getTime()) {
+		console.log(`[WARNING] dist/ is older than src/ — run 'npm run build:cli' to rebuild.`);
 	}
 }
 

@@ -24,8 +24,7 @@ export function constructInteractions($: CheerioAPI) {
 		$embed.find("iframe").each(function () {
 			if (!$(this).attr("width")) $(this).attr("width", "560");
 			if (!$(this).attr("height")) $(this).attr("height", "315");
-			// Keep an identifying class so stats can count interactions after
-			// the pre.interaction wrapper is discarded.
+			// Keep an identifying class so stats can count interactions after the pre.interaction wrapper is discarded.
 			$(this).addClass("interaction");
 		});
 		$(this).replaceWith($embed.contents());

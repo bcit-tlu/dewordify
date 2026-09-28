@@ -58,9 +58,8 @@ function createPage($page: CheerioAPI, template: string, pageNumber: number, ctx
 	const endIndex = startIndex + match.length;
 	const title = (h1Text.slice(0, startIndex) + h1Text.slice(endIndex)).trim();
 	const linkedFileName = match.slice(1, -1).trim();
-	// The extension comes from untrusted heading text; only accept simple
-	// extensions so a crafted name can't place path traversal segments into
-	// the generated filename.
+	// The extension comes from untrusted heading text.
+	// Only accept simple extensions so a crafted name can't put path traversal segments into the generated filename.
 	const ext = safeExtensionOf(linkedFileName);
 	const newFileName = getFileName(pageNumber, title, ext);
 	const tocFileName = newFileName.slice(0, newFileName.length - ext.length) + "._toc.json";

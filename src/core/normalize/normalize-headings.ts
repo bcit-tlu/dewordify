@@ -34,11 +34,9 @@ export function normalizeHeadings($: CheerioAPI, ctx: ConvertContext) {
 	}
 
 	$("h1,h2,h3,h4,h5,h6").each(function () {
-		// Loop until no inline formatting remains: replaceWith reparses the
-		// inner HTML, so nested tags (e.g. <strong><em>x</em></strong>) become
-		// fresh elements whose original (now-detached) siblings are skipped by
-		// a single .each pass. Re-querying each iteration catches the reparsed
-		// descendants.
+		// Loop until no inline formatting remains.
+		// replaceWith reparses inner HTML, so nested tags (e.g. <strong><em>x</em></strong>) become fresh elements.
+		// A single .each pass then skips the now-detached originals, leaving reparsed descendants behind.
 		let $formatted = $(this).find("strong,em,i,b");
 		while ($formatted.length) {
 			$formatted.each(function () {

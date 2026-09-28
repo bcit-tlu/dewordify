@@ -33,3 +33,19 @@ services:
 
     ports:
       - "9000:9000"
+
+  # Run the CLI against a .docx in this directory:
+  #   docker compose run --rm cli file.docx
+  # Builds dist/ via npm run build:cli, then forwards args to bin/dewordify.js.
+  # The repo is mounted at /app, so outputs land back in this directory.
+  cli:
+    build:
+      context: .
+      target: builder
+    profiles: ["cli"]
+
+    volumes:
+      - /app/node_modules
+      - ./:/app
+
+    entrypoint: ["sh", "-c", "npm run build:cli && node bin/dewordify.js \"$@\"", "--"]
