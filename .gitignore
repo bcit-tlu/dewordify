@@ -3,3 +3,6 @@ node_modules
 Reference-Folder
 old-script.js
 package-lock.json
+
+# Local git worktrees (convention: <repo>/.worktrees/<name>)
+.worktrees/
