@@ -100,6 +100,7 @@ jobs:
     uses: bcit-tlu/.github/.github/workflows/cdn-upload.yaml@main
     permissions:
       contents: read
+      id-token: write # the shared upload job requests it; a caller that grants less fails validation
     with:
       dist_dir: "dist-web"
       artifact_name: "dist-web"
