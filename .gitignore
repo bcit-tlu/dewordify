@@ -1,5 +1,44 @@
-node_modules
-*.bat
-Reference-Folder
-old-script.js
-package-lock.json
+# OS/editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist/
+dist-web/
+build/
+out/
+coverage/
+
+# Local scratch/cache
+tmp/
+.cache/
+.dockerignore-local
+
+# Helm artifacts
+charts/**/*.tgz
+
+# Local pulled chart
+app-chart/
+
+# Secrets
+**/secrets*
+*.local
+
+# Logs
+*.log
+logs/

@@ -1,0 +1,112 @@
+name: "[CI] Build & publish"
+
+# PR runs show PR title; main runs show head commit subject.
+run-name: >-
+  ${{ github.event_name == 'pull_request'
+      && format('PR #{0} — {1}', github.event.pull_request.number, github.event.pull_request.title)
+      || format('Head build — {0}', github.event.head_commit.message) }}
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  ASSET_EXTENSIONS: "css,js,map,jpg,jpeg,png,webp,gif,svg,ico,mp4,woff,woff2,ttf,otf,eot"
+
+# Default to least privilege; jobs elevate only when needed.
+permissions:
+  contents: read
+
+jobs:
+  # Typecheck and test. The job id/name must stay `validate`: it is the required
+  # status check in this repo's `default-branch` ruleset, so no PR can merge
+  # unless a job with exactly this name reports success.
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      # `prepare` runs build:cli, so this also verifies the CLI compiles.
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  # Build, sign, scan, and publish the OCI image using the shared reusable
+  # workflow. Gated on validate so failing code is never published.
+  build-dewordify:
+    needs: validate
+    uses: bcit-tlu/.github/.github/workflows/oci-build.yaml@main
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      security-events: write
+      actions: read
+    with:
+      component: dewordify
+      image_name: dewordify
+      context: .
+      tag_prefix: "v"
+    secrets: inherit
+
+  # Build the static site locally and rewrite asset URLs for the CDN upload.
+  # The Docker build happens separately in the build-dewordify job.
+  build-assets:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      short_sha: ${{ steps.set-sha.outputs.short_sha }}
+      asset_extensions: ${{ steps.set-extensions.outputs.asset_extensions }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - run: npm ci
+      - run: npm run build
+      - id: set-sha
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+      - id: set-extensions
+        run: echo "asset_extensions=${ASSET_EXTENSIONS}" >> "$GITHUB_OUTPUT"
+
+      - name: Rewrite asset URLs for CDN upload
+        env:
+          CDN_BASE_URL: ${{ vars.CDN_BASE_URL }}
+          CDN_NAMESPACE: ${{ vars.CDN_NAMESPACE }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          SHORT_SHA: ${{ steps.set-sha.outputs.short_sha }}
+          ASSET_EXTENSIONS: ${{ env.ASSET_EXTENSIONS }}
+          DIST_DIR: dist-web
+        run: bash .github/scripts/cdn-rewrite-dist.sh
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist-web
+          path: dist-web/
+
+  # Upload the rewritten dist-web/ artifacts to Azure CDN under the
+  # short-SHA prefix. Reuses the bcit-tlu/.github reusable workflow.
+  cdn-upload:
+    needs: build-assets
+    uses: bcit-tlu/.github/.github/workflows/cdn-upload.yaml@main
+    permissions:
+      contents: read
+      id-token: write # the shared upload job requests it; a caller that grants less fails validation
+    with:
+      dist_dir: "dist-web"
+      artifact_name: "dist-web"
+      destination_prefix: ${{ vars.CDN_NAMESPACE }}/${{ github.event.repository.name }}/${{ needs.build-assets.outputs.short_sha }}
+      cdn_account_name: ${{ vars.CDN_ACCOUNT_NAME }}
+      cdn_container: ${{ vars.CDN_CONTAINER }}
+      asset_extensions: ${{ needs.build-assets.outputs.asset_extensions }}
+    secrets:
+      CDN_SAS_TOKEN: ${{ secrets.CDN_SAS_TOKEN }}

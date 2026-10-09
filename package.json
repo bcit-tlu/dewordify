@@ -1,29 +1,51 @@
 {
   "name": "dewordify",
   "version": "1.0.0",
-  "description": "Dewordify is used to facilitate the development of online course materials by converting MS Word documents into HTML pages.",
-  "main": "index.js",
+  "description": "Converts MS Word documents into HTML pages. Runs as a browser-based web app or a local CLI.",
+  "type": "module",
   "bin": {
-    "dewordify": "./bin/dewordify",
-    "munch": "./bin/munch",
-    "estimate": "./bin/estimate",
-    "strip": "./bin/strip"
+    "dewordify": "./bin/dewordify.js",
+    "munch": "./bin/munch.js",
+    "estimate": "./bin/estimate.js",
+    "strip": "./bin/strip.js"
   },
+  "files": [
+    "bin",
+    "dist",
+    "src/core",
+    "src/cli"
+  ],
   "engines": {
-    "node": ">=6"
+    "node": ">=24"
   },
   "scripts": {
-    "update": "git pull && npm install -g"
+    "dev": "vite",
+    "build": "vite build",
+    "build:cli": "tsc -p tsconfig.cli.json",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "cli": "tsx src/cli/index.ts",
+    "prepare": "npm run build:cli"
   },
-  "author": {
-    "name": "Mike Taylor"
-  },
-  "maintainer": "courseproduction@bcit.ca",
-  "license": "MIT",
   "dependencies": {
-    "chalk": "^4.1.2",
-    "cheerio": "^0.22.0",
-    "js-beautify": "^1.14.11",
-    "mammoth": "^1.6.0"
+    "cheerio": "^1.2.0",
+    "js-beautify": "^2.0.3",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.12.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
+    "docx": "^9.7.1",
+    "domhandler": "^6.0.1",
+    "tsx": "^4.23.11",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1",
+    "vitest": "^4.1.10"
   }
 }
