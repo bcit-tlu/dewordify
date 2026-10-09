@@ -20,9 +20,28 @@ permissions:
   contents: read
 
 jobs:
+  # Typecheck and test. The job id/name must stay `validate`: it is the required
+  # status check in this repo's `default-branch` ruleset, so no PR can merge
+  # unless a job with exactly this name reports success.
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      # `prepare` runs build:cli, so this also verifies the CLI compiles.
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
   # Build, sign, scan, and publish the OCI image using the shared reusable
-  # workflow.
+  # workflow. Gated on validate so failing code is never published.
   build-dewordify:
+    needs: validate
     uses: bcit-tlu/.github/.github/workflows/oci-build.yaml@main
     permissions:
       contents: read

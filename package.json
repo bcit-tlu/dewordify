@@ -23,6 +23,7 @@
     "build": "vite build",
     "build:cli": "tsc -p tsconfig.cli.json",
     "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "cli": "tsx src/cli/index.ts",
     "prepare": "npm run build:cli"
